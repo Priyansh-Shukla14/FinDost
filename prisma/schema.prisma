@@ -1,0 +1,179 @@
+// 🗄️ FinDost Database Schema
+// Ye file define karti hai ki database mein kaunsi tables hain
+// aur unke columns (fields) kya hain.
+// Socho isse Excel sheets ka blueprint — har model = ek sheet
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================
+// 🔐 AUTH TABLES — NextAuth ke liye zaroori
+// Ye 4 tables NextAuth automatically use karta hai
+// login/signup/session manage karne ke liye
+// =============================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // null for Google OAuth users, hashed for email signup
+  plan          String    @default("free") // "free" ya "pro"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relationships — ye user ke saare data se connect karta hai
+  accounts      Account[]
+  sessions      Session[]
+  expenses      Expense[]
+  budgets       Budget[]
+  categories    Category[]
+  subscriptions Subscription[]
+  goals         Goal[]
+  taxEntries    TaxEntry[]
+  aiMessages    Int       @default(0) // aaj ke AI messages count
+  aiResetDate   DateTime  @default(now())
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// =============================================
+// 💰 CORE TABLES — App ke main features
+// =============================================
+
+// Category — Chai ☕, Auto 🛺, Food 🍛, etc.
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  emoji     String
+  color     String    @default("#10b981") // hex color for charts
+  isDefault Boolean   @default(false) // system categories vs user-created
+  userId    String?   // null = system default, set = user-created
+  
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses  Expense[]
+  budgets   Budget[]
+
+  @@unique([name, userId])
+}
+
+// Expense — Har ek kharcha
+model Expense {
+  id         String   @id @default(cuid())
+  amount     Int      // paise mein store (₹150 = 15000 paise) — float issues avoid
+  note       String?
+  date       DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId     String
+  categoryId String
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, date])
+  @@index([userId, categoryId])
+}
+
+// Budget — Monthly limit per category
+model Budget {
+  id         String   @id @default(cuid())
+  amount     Int      // paise mein
+  month      Int      // 1-12
+  year       Int      // 2024, 2025...
+  alertSent  Boolean  @default(false) // 80% cross hone pe alert gaya?
+  createdAt  DateTime @default(now())
+
+  userId     String
+  categoryId String
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId, month, year])
+}
+
+// Subscription — Recurring payments (Netflix, Spotify, etc.)
+model Subscription {
+  id          String   @id @default(cuid())
+  name        String
+  amount      Int      // paise mein
+  frequency   String   @default("monthly") // monthly, yearly
+  nextDueDate DateTime
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Goal — Dream savings goals (Goa Trip, New Phone, etc.)
+model Goal {
+  id          String   @id @default(cuid())
+  name        String
+  targetAmount Int     // paise mein
+  savedAmount  Int     @default(0) // paise mein
+  deadline    DateTime?
+  emoji       String   @default("🎯")
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// TaxEntry — 80C investments tracking
+model TaxEntry {
+  id        String   @id @default(cuid())
+  type      String   // "PPF", "ELSS", "LIC", "NPS", etc.
+  amount    Int      // paise mein
+  date      DateTime
+  note      String?
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

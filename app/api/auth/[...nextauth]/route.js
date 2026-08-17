@@ -1,0 +1,10 @@
+// 🔐 NextAuth API Route
+// Ye route login/logout/session sab handle karta hai
+// URL: /api/auth/...
+
+import NextAuth from "next-auth";
+import { authOptions } from "@/lib/auth";
+
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };
