@@ -1,5 +1,10 @@
 // 🌱 Seed Script — Default Indian categories daalega database mein
 // Run: npx prisma db seed
+//
+// ⚠️ Note: schema mein @@unique([name, userId]) hai, par system categories ka
+// userId NULL hota hai — aur Postgres do NULL ko "alag" maanta hai. Isliye
+// upsert() yahan kaam nahi karta (har run pe duplicate ban jaate the).
+// Solution: pehle findFirst se dhoondo, phir update ya create karo.
 
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
@@ -23,27 +28,66 @@ const defaultCategories = [
 async function main() {
   console.log("🌱 Seeding default categories...\n");
 
+  let created = 0;
+  let updated = 0;
+
   for (const category of defaultCategories) {
-    const created = await prisma.category.upsert({
-      where: {
-        name_userId: {
-          name: category.name,
-          userId: "", // system default — no userId
-        },
-      },
-      update: {},
-      create: {
-        name: category.name,
-        emoji: category.emoji,
-        color: category.color,
-        isDefault: true,
-        userId: null,
-      },
+    // System default = userId NULL. findFirst kyunki NULL pe unique constraint
+    // reliable nahi hai.
+    const existing = await prisma.category.findFirst({
+      where: { name: category.name, userId: null },
+      orderBy: { id: "asc" },
     });
-    console.log(`  ✅ ${created.emoji} ${created.name}`);
+
+    if (existing) {
+      await prisma.category.update({
+        where: { id: existing.id },
+        data: {
+          emoji: category.emoji,
+          color: category.color,
+          isDefault: true,
+        },
+      });
+      updated++;
+      console.log(`  ♻️  ${category.emoji} ${category.name} (already there)`);
+    } else {
+      await prisma.category.create({
+        data: {
+          name: category.name,
+          emoji: category.emoji,
+          color: category.color,
+          isDefault: true,
+          userId: null,
+        },
+      });
+      created++;
+      console.log(`  ✅ ${category.emoji} ${category.name}`);
+    }
   }
 
-  console.log("\n🎉 Seeding complete!");
+  // Purane buggy seed runs ne duplicates banaye ho sakte hain — bata do
+  const systemCategories = await prisma.category.findMany({
+    where: { userId: null },
+    select: { name: true },
+  });
+
+  const counts = systemCategories.reduce((acc, c) => {
+    acc[c.name] = (acc[c.name] || 0) + 1;
+    return acc;
+  }, {});
+
+  const duplicates = Object.entries(counts).filter(([, n]) => n > 1);
+
+  console.log(`\n🎉 Seeding complete — ${created} naye, ${updated} update hue.`);
+
+  if (duplicates.length > 0) {
+    console.log("\n⚠️  Purane seed runs se duplicate categories mili hain:");
+    duplicates.forEach(([name, n]) => console.log(`     ${name} × ${n}`));
+    console.log(
+      "     Inhe hataane se pehle expenses/budgets ko ek category pe move karna padega —\n" +
+        "     isliye script khud delete nahi kar rahi."
+    );
+  }
 }
 
 main()

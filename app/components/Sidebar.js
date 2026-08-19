@@ -9,67 +9,56 @@ const menuItems = [
   { name: "Expenses", href: "/dashboard/expenses", icon: "💸" },
   { name: "Budgets", href: "/dashboard/budgets", icon: "🎯" },
   { section: "AI Features" },
-  { name: "FinBot", href: "/dashboard/finbot", icon: "🤖" },
-  { name: "Receipt Scanner", href: "/dashboard/scanner", icon: "📸" },
+  { name: "FinBot", href: "/dashboard/finbot", icon: "🤖", soon: true },
+  { name: "Receipt Scanner", href: "/dashboard/scanner", icon: "📸", soon: true },
   { section: "Tracking" },
-  { name: "Subscriptions", href: "/dashboard/subscriptions", icon: "🔄" },
-  { name: "Dream Goals", href: "/dashboard/goals", icon: "🌟" },
-  { name: "80C Tax Saver", href: "/dashboard/tax", icon: "📋" },
+  { name: "Subscriptions", href: "/dashboard/subscriptions", icon: "🔄", soon: true },
+  { name: "Dream Goals", href: "/dashboard/goals", icon: "🌟", soon: true },
+  { name: "80C Tax Saver", href: "/dashboard/tax", icon: "📋", soon: true },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ open = false }) {
   const pathname = usePathname();
 
+  // /dashboard sirf exact match pe active, baaki nested routes pe bhi
+  function isActive(href) {
+    return href === "/dashboard"
+      ? pathname === href
+      : pathname === href || pathname.startsWith(`${href}/`);
+  }
+
   return (
-    <aside className="sidebar">
-      {menuItems.map((item, i) => {
-        if (item.section) {
+    <aside className={`sidebar ${open ? "open" : ""}`}>
+      <nav className="sidebar-nav">
+        {menuItems.map((item, i) => {
+          if (item.section) {
+            return (
+              <div key={`section-${i}`} className="sidebar-section-title">
+                {item.section}
+              </div>
+            );
+          }
+
           return (
-            <div key={i} className="sidebar-section-title">
-              {item.section}
-            </div>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`sidebar-link ${isActive(item.href) ? "active" : ""}`}
+              aria-current={isActive(item.href) ? "page" : undefined}
+            >
+              <span style={{ fontSize: "1.1rem" }}>{item.icon}</span>
+              {item.name}
+              {item.soon && <span className="sidebar-badge">soon</span>}
+            </Link>
           );
-        }
+        })}
+      </nav>
 
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`sidebar-link ${pathname === item.href ? "active" : ""}`}
-          >
-            <span style={{ fontSize: "1.1rem" }}>{item.icon}</span>
-            {item.name}
-          </Link>
-        );
-      })}
-
-      {/* Pro upgrade card */}
-      <div
-        style={{
-          marginTop: "auto",
-          padding: "20px 16px",
-          position: "absolute",
-          bottom: "16px",
-          left: "16px",
-          right: "16px",
-        }}
-      >
-        <div
-          className="glass-card"
-          style={{
-            padding: "20px",
-            background: "var(--gradient-card)",
-            textAlign: "center",
-          }}
-        >
+      {/* Pro upgrade card — list ke neeche chipka hua */}
+      <div className="sidebar-footer">
+        <div className="sidebar-pro-card">
           <div style={{ fontSize: "1.5rem", marginBottom: "8px" }}>✨</div>
-          <div
-            style={{
-              fontSize: "0.85rem",
-              fontWeight: 700,
-              marginBottom: "6px",
-            }}
-          >
+          <div style={{ fontSize: "0.85rem", fontWeight: 700, marginBottom: "6px" }}>
             Upgrade to Pro
           </div>
           <div
@@ -84,7 +73,12 @@ export default function Sidebar() {
           <Link
             href="/dashboard/upgrade"
             className="btn-primary"
-            style={{ padding: "8px 20px", fontSize: "0.8rem", width: "100%" }}
+            style={{
+              padding: "8px 20px",
+              fontSize: "0.8rem",
+              width: "100%",
+              justifyContent: "center",
+            }}
           >
             ₹99/month
           </Link>
