@@ -1,5 +1,5 @@
-// ⏳ Dashboard Loading — server component fetch hone tak skeleton
-// Pehle page navigate karte waqt bilkul blank rehta tha.
+// Dashboard loading state — a skeleton shown while the server component
+// fetches its data. Navigating here used to leave the page completely blank.
 
 export default function DashboardLoading() {
   return (

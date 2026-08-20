@@ -1830,11 +1830,11 @@ body {
 
 /* ========================================
    PHASE 3+ ADDITIONS
-   Sab kuch upar wale hi design tokens use karta hai —
-   koi naya look nahi, sirf jo missing tha wo.
+   Everything here reuses the design tokens defined above —
+   no new look, just what was missing.
    ======================================== */
 
-/* ---- Sidebar: flex column taaki Pro card neeche chipke ---- */
+/* ---- Sidebar: flex column so the Pro card sticks to the bottom ---- */
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -1930,7 +1930,7 @@ body {
   font-weight: 500;
 }
 
-/* ---- Dashboard 2-column panels (pehle inline 1fr 1fr tha, mobile pe tuta hua) ---- */
+/* ---- Dashboard 2-column panels (was an inline 1fr 1fr, which broke on mobile) ---- */
 .dashboard-grid-2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));

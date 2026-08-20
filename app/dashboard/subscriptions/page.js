@@ -8,12 +8,12 @@ export default function SubscriptionsPage() {
       icon="🔄"
       title="Subscriptions"
       phase="Phase 6"
-      description="Netflix, Spotify, gym — jo har mahine apne aap kat jaata hai. App khud pehchanega ki kaunsa kharcha recurring hai aur poocha karega ki subscription bana dein?"
+      description="Netflix, Spotify, the gym — everything that quietly renews each month. The app spots which expenses look recurring and asks whether to track them as subscriptions."
       points={[
-        "Recurring payments auto-detect (same merchant, ~28–33 din)",
-        "Har mahine ka total subscription burn",
-        "Next due date ka reminder",
-        "Tu confirm karega tabhi subscription banegi",
+        "Auto-detect recurring payments (same merchant, ~28-33 days)",
+        "Your total monthly subscription burn",
+        "Reminders for the next due date",
+        "Nothing is created until you confirm it",
       ]}
     />
   );

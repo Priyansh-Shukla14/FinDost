@@ -1,9 +1,9 @@
 "use client";
 
-// 🧱 Dashboard Chrome — Navbar + Sidebar + main content
-// Mobile pe sidebar hidden hoti hai (transform: translateX(-100%)), isliye
-// yahan open/close state rakhi hai — pehle CSS mein .sidebar.open toh tha
-// par usse toggle karne wala koi button hi nahi tha.
+// Dashboard chrome — navbar, sidebar and the main content area.
+// On mobile the sidebar is hidden (transform: translateX(-100%)), so the
+// open/close state lives here — the CSS had a .sidebar.open rule but
+// nothing to toggle it.
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
@@ -14,12 +14,12 @@ export default function DashboardChrome({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
-  // Page badla toh sidebar band
+  // Close the sidebar whenever the page changes
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
 
-  // Escape se band
+  // Close on Escape
   useEffect(() => {
     if (!sidebarOpen) return;
     function onKey(e) {

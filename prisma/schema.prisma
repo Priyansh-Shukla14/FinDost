@@ -1,7 +1,6 @@
-// 🗄️ FinDost Database Schema
-// Ye file define karti hai ki database mein kaunsi tables hain
-// aur unke columns (fields) kya hain.
-// Socho isse Excel sheets ka blueprint — har model = ek sheet
+// FinDost database schema
+// Defines the tables in the database and the columns on each one.
+// Think of it as a blueprint for a set of spreadsheets — one model per sheet.
 
 generator client {
   provider = "prisma-client-js"
@@ -13,9 +12,9 @@ datasource db {
 }
 
 // =============================================
-// 🔐 AUTH TABLES — NextAuth ke liye zaroori
-// Ye 4 tables NextAuth automatically use karta hai
-// login/signup/session manage karne ke liye
+// AUTH TABLES — required by NextAuth
+// NextAuth uses these four tables to manage
+// signup, login and sessions.
 // =============================================
 
 model User {
@@ -25,11 +24,11 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?   // null for Google OAuth users, hashed for email signup
-  plan          String    @default("free") // "free" ya "pro"
+  plan          String    @default("free") // "free" or "pro"
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // Relationships — ye user ke saare data se connect karta hai
+  // Relationships — these connect a user to all of their data
   accounts      Account[]
   sessions      Session[]
   expenses      Expense[]
@@ -38,7 +37,7 @@ model User {
   subscriptions Subscription[]
   goals         Goal[]
   taxEntries    TaxEntry[]
-  aiMessages    Int       @default(0) // aaj ke AI messages count
+  aiMessages    Int       @default(0) // AI messages used today
   aiResetDate   DateTime  @default(now())
 }
 
@@ -79,10 +78,10 @@ model VerificationToken {
 }
 
 // =============================================
-// 💰 CORE TABLES — App ke main features
+// CORE TABLES — the app's main features
 // =============================================
 
-// Category — Chai ☕, Auto 🛺, Food 🍛, etc.
+// Category — Food, Transport, Shopping, etc.
 model Category {
   id        String    @id @default(cuid())
   name      String
@@ -90,7 +89,7 @@ model Category {
   color     String    @default("#10b981") // hex color for charts
   isDefault Boolean   @default(false) // system categories vs user-created
   userId    String?   // null = system default, set = user-created
-  
+
   user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expenses  Expense[]
   budgets   Budget[]
@@ -98,10 +97,10 @@ model Category {
   @@unique([name, userId])
 }
 
-// Expense — Har ek kharcha
+// Expense — a single spend
 model Expense {
   id         String   @id @default(cuid())
-  amount     Int      // paise mein store (₹150 = 15000 paise) — float issues avoid
+  amount     Int      // stored in paise (₹150 = 15000 paise) to avoid float issues
   note       String?
   date       DateTime
   createdAt  DateTime @default(now())
@@ -117,13 +116,13 @@ model Expense {
   @@index([userId, categoryId])
 }
 
-// Budget — Monthly limit per category
+// Budget — a monthly limit per category
 model Budget {
   id         String   @id @default(cuid())
-  amount     Int      // paise mein
+  amount     Int      // in paise
   month      Int      // 1-12
   year       Int      // 2024, 2025...
-  alertSent  Boolean  @default(false) // 80% cross hone pe alert gaya?
+  alertSent  Boolean  @default(false) // has the 80% alert already been sent?
   createdAt  DateTime @default(now())
 
   userId     String
@@ -135,11 +134,11 @@ model Budget {
   @@unique([userId, categoryId, month, year])
 }
 
-// Subscription — Recurring payments (Netflix, Spotify, etc.)
+// Subscription — recurring payments (Netflix, Spotify, etc.)
 model Subscription {
   id          String   @id @default(cuid())
   name        String
-  amount      Int      // paise mein
+  amount      Int      // in paise
   frequency   String   @default("monthly") // monthly, yearly
   nextDueDate DateTime
   isActive    Boolean  @default(true)
@@ -149,12 +148,12 @@ model Subscription {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Goal — Dream savings goals (Goa Trip, New Phone, etc.)
+// Goal — savings goals (a trip, a new phone, etc.)
 model Goal {
   id          String   @id @default(cuid())
   name        String
-  targetAmount Int     // paise mein
-  savedAmount  Int     @default(0) // paise mein
+  targetAmount Int     // in paise
+  savedAmount  Int     @default(0) // in paise
   deadline    DateTime?
   emoji       String   @default("🎯")
   isCompleted Boolean  @default(false)
@@ -165,11 +164,11 @@ model Goal {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// TaxEntry — 80C investments tracking
+// TaxEntry — Section 80C investment tracking
 model TaxEntry {
   id        String   @id @default(cuid())
   type      String   // "PPF", "ELSS", "LIC", "NPS", etc.
-  amount    Int      // paise mein
+  amount    Int      // in paise
   date      DateTime
   note      String?
   createdAt DateTime @default(now())

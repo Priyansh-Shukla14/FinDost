@@ -8,13 +8,13 @@ export const metadata = {
 };
 
 export default async function DashboardLayout({ children }) {
-  // 🔒 PROTECTED ROUTE — bina login ke dashboard nahi khulega!
+  // Protected route — the dashboard does not open without a session
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
     redirect("/login");
   }
 
-  // AuthProvider root layout mein already hai — dobara wrap karne ki zaroorat nahi
+  // AuthProvider already wraps the root layout, so no need to wrap again
   return <DashboardChrome>{children}</DashboardChrome>;
 }

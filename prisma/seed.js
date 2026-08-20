@@ -1,55 +1,71 @@
-// 🌱 Seed Script — Default Indian categories daalega database mein
+// Seed script — inserts the default categories into the database.
 // Run: npx prisma db seed
 //
-// ⚠️ Note: schema mein @@unique([name, userId]) hai, par system categories ka
-// userId NULL hota hai — aur Postgres do NULL ko "alag" maanta hai. Isliye
-// upsert() yahan kaam nahi karta (har run pe duplicate ban jaate the).
-// Solution: pehle findFirst se dhoondo, phir update ya create karo.
+// Note: the schema has @@unique([name, userId]), but system categories have a
+// NULL userId, and Postgres treats two NULLs as distinct. That makes upsert()
+// useless here (every run created duplicates). Instead: findFirst, then
+// update or create.
+//
+// `previousNames` lets a category be renamed without breaking anything. The
+// lookup falls back to the old names and renames the existing row in place,
+// so its id is preserved and every expense and budget stays linked to it.
 
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const defaultCategories = [
-  { name: "Chai-Nashta", emoji: "☕", color: "#f59e0b" },
-  { name: "Khana-Peena", emoji: "🍛", color: "#ef4444" },
-  { name: "Auto-Rickshaw", emoji: "🛺", color: "#f97316" },
-  { name: "Recharge", emoji: "📱", color: "#3b82f6" },
+  { name: "Tea & Snacks", emoji: "☕", color: "#f59e0b", previousNames: ["Chai-Nashta"] },
+  { name: "Food & Dining", emoji: "🍛", color: "#ef4444", previousNames: ["Khana-Peena"] },
+  { name: "Transport", emoji: "🛺", color: "#f97316", previousNames: ["Auto-Rickshaw"] },
+  { name: "Mobile & Internet", emoji: "📱", color: "#3b82f6", previousNames: ["Recharge"] },
   { name: "Shopping", emoji: "🛍️", color: "#ec4899" },
-  { name: "EMI", emoji: "🏦", color: "#6366f1" },
+  { name: "EMI & Loans", emoji: "🏦", color: "#6366f1", previousNames: ["EMI"] },
   { name: "Entertainment", emoji: "🎬", color: "#8b5cf6" },
-  { name: "Padhai", emoji: "📚", color: "#14b8a6" },
+  { name: "Education", emoji: "📚", color: "#14b8a6", previousNames: ["Padhai"] },
   { name: "Health", emoji: "💊", color: "#22c55e" },
   { name: "Rent", emoji: "🏠", color: "#0ea5e9" },
   { name: "Travel", emoji: "✈️", color: "#06b6d4" },
   { name: "Groceries", emoji: "🥦", color: "#84cc16" },
-  { name: "Doosra", emoji: "📦", color: "#6b7280" },
+  { name: "Other", emoji: "📦", color: "#6b7280", previousNames: ["Doosra"] },
 ];
 
 async function main() {
-  console.log("🌱 Seeding default categories...\n");
+  console.log("Seeding default categories...\n");
 
   let created = 0;
   let updated = 0;
+  let renamed = 0;
 
   for (const category of defaultCategories) {
-    // System default = userId NULL. findFirst kyunki NULL pe unique constraint
-    // reliable nahi hai.
+    const names = [category.name, ...(category.previousNames || [])];
+
+    // System defaults have userId NULL, and findFirst is used because a
+    // unique constraint is not reliable against NULL.
     const existing = await prisma.category.findFirst({
-      where: { name: category.name, userId: null },
+      where: { name: { in: names }, userId: null },
       orderBy: { id: "asc" },
     });
 
     if (existing) {
+      const wasRenamed = existing.name !== category.name;
+
       await prisma.category.update({
         where: { id: existing.id },
         data: {
+          name: category.name,
           emoji: category.emoji,
           color: category.color,
           isDefault: true,
         },
       });
-      updated++;
-      console.log(`  ♻️  ${category.emoji} ${category.name} (already there)`);
+
+      if (wasRenamed) {
+        renamed++;
+        console.log(`  ${category.emoji} ${existing.name} -> ${category.name} (renamed)`);
+      } else {
+        updated++;
+        console.log(`  ${category.emoji} ${category.name} (already present)`);
+      }
     } else {
       await prisma.category.create({
         data: {
@@ -61,11 +77,11 @@ async function main() {
         },
       });
       created++;
-      console.log(`  ✅ ${category.emoji} ${category.name}`);
+      console.log(`  ${category.emoji} ${category.name} (created)`);
     }
   }
 
-  // Purane buggy seed runs ne duplicates banaye ho sakte hain — bata do
+  // Older buggy seed runs may have left duplicates behind — report them
   const systemCategories = await prisma.category.findMany({
     where: { userId: null },
     select: { name: true },
@@ -78,21 +94,23 @@ async function main() {
 
   const duplicates = Object.entries(counts).filter(([, n]) => n > 1);
 
-  console.log(`\n🎉 Seeding complete — ${created} naye, ${updated} update hue.`);
+  console.log(
+    `\nSeeding complete — ${created} created, ${renamed} renamed, ${updated} unchanged.`
+  );
 
   if (duplicates.length > 0) {
-    console.log("\n⚠️  Purane seed runs se duplicate categories mili hain:");
-    duplicates.forEach(([name, n]) => console.log(`     ${name} × ${n}`));
+    console.log("\nDuplicate categories left over from older seed runs:");
+    duplicates.forEach(([name, n]) => console.log(`     ${name} x ${n}`));
     console.log(
-      "     Inhe hataane se pehle expenses/budgets ko ek category pe move karna padega —\n" +
-        "     isliye script khud delete nahi kar rahi."
+      "     Removing them means moving their expenses and budgets onto a single\n" +
+        "     category first, so this script does not delete anything itself."
     );
   }
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed error:", e);
+    console.error("Seed error:", e);
     process.exit(1);
   })
   .finally(async () => {

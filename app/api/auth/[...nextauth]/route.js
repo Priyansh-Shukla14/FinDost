@@ -1,5 +1,4 @@
-// 🔐 NextAuth API Route
-// Ye route login/logout/session sab handle karta hai
+// NextAuth API route — handles login, logout and session
 // URL: /api/auth/...
 
 import NextAuth from "next-auth";

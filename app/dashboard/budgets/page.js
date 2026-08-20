@@ -1,5 +1,5 @@
-// 🎯 Budgets Page — Server Component
-// Shows category-wise budgets with progress bars and spending data
+// Budgets page — server component
+// Category-wise budgets with progress bars and the matching spend
 
 import { prisma } from "@/lib/prisma";
 import { requirePageUserId } from "@/lib/session";
@@ -16,7 +16,7 @@ export const metadata = {
   title: "Budgets — FinDost",
 };
 
-// URL se kuch bhi aa sakta hai — safe range mein rakho
+// Anything can arrive in the URL — keep it inside a safe range
 function clampInt(value, min, max, fallback) {
   const n = parseInt(value, 10);
   if (!Number.isFinite(n) || n < min || n > max) return fallback;
@@ -53,7 +53,7 @@ export default async function BudgetsPage({ searchParams }) {
   const totalSpent = categorySpend.reduce((sum, cs) => sum + (cs._sum.amount || 0), 0);
   const budgetUsed = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
 
-  // Build budget data per category
+  // Build the budget data per category
   const budgetData = categories.map((cat) => {
     const budget = budgets.find((b) => b.categoryId === cat.id);
     const spent = categorySpend.find((cs) => cs.categoryId === cat.id)?._sum.amount || 0;
@@ -73,7 +73,7 @@ export default async function BudgetsPage({ searchParams }) {
     };
   });
 
-  // Jinpe budget set hai — sabse zyada bhare hue pehle
+  // Categories that have a budget — fullest first
   const withBudget = budgetData
     .filter((b) => b.budgetAmount > 0)
     .sort((a, b) => b.percent - a.percent);
@@ -92,7 +92,7 @@ export default async function BudgetsPage({ searchParams }) {
         <div>
           <h1 className="page-title">🎯 Budgets</h1>
           <p className="page-subtitle">
-            {getMonthName(month)} {year} — Category-wise spending limits set karo
+            {getMonthName(month)} {year} — set category-wise spending limits
           </p>
         </div>
       </div>
@@ -103,7 +103,7 @@ export default async function BudgetsPage({ searchParams }) {
           <div className="stat-card-label">🎯 Total Budget</div>
           <div className="stat-card-value">{formatCurrency(totalBudget)}</div>
           <div className="stat-card-change" style={{ color: "var(--text-muted)" }}>
-            {withBudget.length} categories mein set
+            set across {withBudget.length} categories
           </div>
         </div>
         <div className="stat-card">
@@ -116,12 +116,12 @@ export default async function BudgetsPage({ searchParams }) {
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-label">💰 Budget Bacha</div>
+          <div className="stat-card-label">💰 Budget Left</div>
           <div className="stat-card-value" style={{ color: totalBudget - totalSpent >= 0 ? "var(--success)" : "var(--danger)" }}>
             {formatCurrency(Math.abs(totalBudget - totalSpent))}
           </div>
           <div className="stat-card-change" style={{ color: "var(--text-muted)" }}>
-            {totalBudget - totalSpent >= 0 ? "safe zone ✅" : "over budget ⚠️"}
+            {totalBudget - totalSpent >= 0 ? "on track ✅" : "over budget ⚠️"}
           </div>
         </div>
       </div>

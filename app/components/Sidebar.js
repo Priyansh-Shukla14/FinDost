@@ -20,7 +20,8 @@ const menuItems = [
 export default function Sidebar({ open = false }) {
   const pathname = usePathname();
 
-  // /dashboard sirf exact match pe active, baaki nested routes pe bhi
+  // /dashboard is active only on an exact match; the rest also match
+  // their nested routes
   function isActive(href) {
     return href === "/dashboard"
       ? pathname === href
@@ -54,7 +55,7 @@ export default function Sidebar({ open = false }) {
         })}
       </nav>
 
-      {/* Pro upgrade card — list ke neeche chipka hua */}
+      {/* Pro upgrade card — pinned below the nav list */}
       <div className="sidebar-footer">
         <div className="sidebar-pro-card">
           <div style={{ fontSize: "1.5rem", marginBottom: "8px" }}>✨</div>

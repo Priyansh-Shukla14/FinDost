@@ -1,7 +1,7 @@
 "use client";
 
-// 🔑 AuthProvider — Session ko poore app mein available karata hai
-// Isse wrap karne se koi bhi component useSession() use kar sakta hai
+// AuthProvider — makes the session available across the whole app.
+// Anything wrapped by this can call useSession().
 
 import { SessionProvider } from "next-auth/react";
 

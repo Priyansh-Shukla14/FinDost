@@ -8,12 +8,12 @@ export default function ScannerPage() {
       icon="📸"
       title="Receipt Scanner"
       phase="Phase 5"
-      description="Bill ki photo kheencho — amount, date aur dukaan ka naam apne aap nikal aayega, aur expense form pehle se bhara mil jayega."
+      description="Take a photo of a bill — the amount, date and merchant name are pulled out automatically, and the expense form arrives pre-filled."
       points={[
-        "Vision model se merchant + amount + date",
-        "Zod se validate hone ke baad hi save",
-        "Form pre-filled — tu bas check karke Add dabana",
-        "Galat pada toh manually theek kar sakta hai",
+        "Merchant, amount and date from a vision model",
+        "Saved only after passing Zod validation",
+        "Form pre-filled — just review it and hit Add",
+        "Anything read incorrectly can be fixed by hand",
       ]}
     />
   );

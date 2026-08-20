@@ -8,12 +8,12 @@ export default function GoalsPage() {
       icon="🌟"
       title="Dream Goals"
       phase="Phase 7"
-      description="Goa trip, naya phone, emergency fund — target set karo, har mahine paise daalo, aur progress bar bharta hua dekho."
+      description="A trip, a new phone, an emergency fund — set a target, put money aside each month, and watch the progress bar fill up."
       points={[
-        "Target amount + deadline",
-        "Har contribution ke saath progress bar",
-        "Goal poora hone pe celebration 🎉",
-        "Dashboard pe chalu goals ki jhalak",
+        "Target amount and deadline",
+        "Progress bar updated with every contribution",
+        "A celebration when a goal is completed 🎉",
+        "Active goals summarised on the dashboard",
       ]}
     />
   );

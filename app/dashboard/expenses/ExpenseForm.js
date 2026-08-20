@@ -1,7 +1,7 @@
 "use client";
 
-// 📝 Expense Form — Modal for Add/Edit expense
-// Reused for both add and edit (receives expense prop for edit mode)
+// Expense form — the add/edit modal.
+// The same component serves both modes (edit mode receives an expense prop).
 
 import { useState, useRef, useEffect } from "react";
 import { addExpense, editExpense } from "@/lib/actions/expense";
@@ -21,7 +21,7 @@ export default function ExpenseForm({ expense, categories, onClose, onSuccess })
     expense ? (expense.amount / 100).toString() : ""
   );
 
-  // Inline "nayi category" panel
+  // Inline "new category" panel
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: "", emoji: "🏷️" });
   const [categorySaving, setCategorySaving] = useState(false);
@@ -30,7 +30,7 @@ export default function ExpenseForm({ expense, categories, onClose, onSuccess })
   const defaultDate = expense ? toInputValue(expense.date) : todayInputValue();
   const defaultNote = expense?.note || "";
 
-  // Escape se modal band
+  // Close the modal on Escape
   useEffect(() => {
     function onKey(e) {
       if (e.key === "Escape") onClose();
@@ -57,7 +57,7 @@ export default function ExpenseForm({ expense, categories, onClose, onSuccess })
     if (result.error) {
       setError(result.error);
     } else {
-      onSuccess(isEdit ? "Expense update ho gaya! ✏️" : "Expense add ho gaya! 🎉");
+      onSuccess(isEdit ? "Expense updated! ✏️" : "Expense added! 🎉");
     }
   }
 
@@ -83,7 +83,7 @@ export default function ExpenseForm({ expense, categories, onClose, onSuccess })
     } else {
       setShowNewCategory(false);
       setNewCategory({ name: "", emoji: "🏷️" });
-      // revalidatePath se list refresh ho jaayegi
+      // revalidatePath refreshes the list
     }
   }
 
@@ -104,7 +104,7 @@ export default function ExpenseForm({ expense, categories, onClose, onSuccess })
           }}
         >
           <h2 className="modal-title" style={{ margin: 0 }}>
-            {isEdit ? "✏️ Edit Expense" : "💸 Naya Expense Add Karo"}
+            {isEdit ? "✏️ Edit Expense" : "💸 Add a New Expense"}
           </h2>
           <button onClick={onClose} className="btn-icon" aria-label="Close">
             ✕
@@ -174,7 +174,7 @@ export default function ExpenseForm({ expense, categories, onClose, onSuccess })
                   marginBottom: "6px",
                 }}
               >
-                {showNewCategory ? "Cancel" : "＋ Nayi category"}
+                {showNewCategory ? "Cancel" : "＋ New category"}
               </button>
             </div>
 
@@ -185,7 +185,7 @@ export default function ExpenseForm({ expense, categories, onClose, onSuccess })
               required
               id="expense-category-select"
             >
-              <option value="">-- Category chuno --</option>
+              <option value="">-- Choose a category --</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.emoji} {cat.name}
@@ -220,7 +220,7 @@ export default function ExpenseForm({ expense, categories, onClose, onSuccess })
                   type="text"
                   className="input-field"
                   style={{ flex: 1 }}
-                  placeholder="Category ka naam"
+                  placeholder="Category name"
                   value={newCategory.name}
                   onChange={(e) =>
                     setNewCategory((p) => ({ ...p, name: e.target.value }))
@@ -270,7 +270,7 @@ export default function ExpenseForm({ expense, categories, onClose, onSuccess })
               type="text"
               name="note"
               className="input-field"
-              placeholder="e.g. Chai peene gaya tha"
+              placeholder="e.g. Coffee with friends"
               defaultValue={defaultNote}
               maxLength={200}
               id="expense-note-input"
@@ -294,9 +294,9 @@ export default function ExpenseForm({ expense, categories, onClose, onSuccess })
                   Saving...
                 </>
               ) : isEdit ? (
-                "Update Karo ✏️"
+                "Update Expense ✏️"
               ) : (
-                "Add Karo 🚀"
+                "Add Expense 🚀"
               )}
             </button>
           </div>

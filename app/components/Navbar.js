@@ -10,7 +10,7 @@ export default function Navbar({ sidebarOpen = false, onToggleSidebar }) {
     <nav className="navbar">
       <div className="navbar-inner">
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {/* Mobile menu — sirf chhoti screen pe dikhta hai (CSS) */}
+          {/* Mobile menu — only visible on small screens (see CSS) */}
           <button
             type="button"
             className="navbar-menu-btn"

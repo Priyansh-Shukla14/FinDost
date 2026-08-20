@@ -8,12 +8,12 @@ export default function FinBotPage() {
       icon="🤖"
       title="FinBot"
       phase="Phase 5"
-      description="Apne kharche ke baare mein normal baat-cheet mein poocho — 'is mahine khane pe kitna gaya?' FinBot tere asli data se jawab dega, andaaza nahi lagayega."
+      description="Ask about your spending in plain language — 'how much went on food this month?' FinBot answers from your real data instead of guessing."
       points={[
-        "Function calling — bot server pe teri hi query chalayega",
-        "Sirf tera data: har query session.user.id se scoped",
-        "Dashboard ke numbers se bilkul match karega",
-        "Free plan pe roz ki message limit",
+        "Function calling — the bot runs your query on the server",
+        "Your data only: every query is scoped to session.user.id",
+        "Answers match the dashboard numbers exactly",
+        "Daily message limit on the free plan",
       ]}
     />
   );

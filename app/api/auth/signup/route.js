@@ -1,13 +1,13 @@
-// 📝 Signup API Route
-// POST /api/auth/signup — Creates new user with email + password
+// Signup API route
+// POST /api/auth/signup — creates a new user with an email and password
 
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signupSchema, firstError } from "@/lib/validations";
 
-// Bahut simple in-memory rate limit — ek IP se 5 signup attempts / 10 min.
-// (Serverless pe per-instance hai; asli rate limiting Phase 6 mein Redis se.)
+// A very simple in-memory rate limit — 5 signup attempts per IP per 10 min.
+// (On serverless this is per instance; real rate limiting arrives in phase 6.)
 const attempts = new Map();
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
@@ -18,7 +18,7 @@ function isRateLimited(ip) {
   hits.push(now);
   attempts.set(ip, hits);
 
-  // Map ko badhne se roko
+  // Keep the map from growing without bound
   if (attempts.size > 5000) attempts.clear();
 
   return hits.length > MAX_ATTEMPTS;
@@ -43,7 +43,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    // Server-side validation — client pe kuch bhi ho, yahan pakka check
+    // Server-side validation — whatever the client does, this is the real check
     const result = signupSchema.safeParse(body);
     if (!result.success) {
       return NextResponse.json(
@@ -52,9 +52,9 @@ export async function POST(request) {
       );
     }
 
-    const { name, email, password } = result.data; // email already lowercased
+    const { name, email, password } = result.data; // email is already lowercased
 
-    // Check if user already exists
+    // Check if the user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
@@ -64,10 +64,10 @@ export async function POST(request) {
       );
     }
 
-    // Hash password
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
+    // Create the user
     const user = await prisma.user.create({
       data: { name, email, password: hashedPassword },
     });
@@ -77,7 +77,7 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
-    // Race condition: do requests ek saath aaye toh unique constraint chalega
+    // Race condition: two concurrent requests hit the unique constraint
     if (error?.code === "P2002") {
       return NextResponse.json(
         { error: "An account with this email already exists" },

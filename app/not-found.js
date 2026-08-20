@@ -1,19 +1,19 @@
 import Link from "next/link";
 
-export const metadata = { title: "Page nahi mila — FinDost" };
+export const metadata = { title: "Page not found — FinDost" };
 
 export default function NotFound() {
   return (
     <div className="status-page">
       <div className="status-card">
         <div className="status-emoji">🧐</div>
-        <h1 className="status-title">404 — ye page kahin kho gaya</h1>
+        <h1 className="status-title">404 — this page went missing</h1>
         <p className="status-desc">
-          Jo link tune khola wo exist nahi karta, ya shayad hata diya gaya hai.
+          The link you opened doesn&apos;t exist, or it may have been removed.
         </p>
         <div className="status-actions">
           <Link href="/dashboard" className="btn-primary">
-            Dashboard pe jao
+            Go to dashboard
           </Link>
           <Link href="/" className="btn-secondary">
             Home

@@ -1,7 +1,7 @@
 "use client";
 
-// 💸 Expense List — Shows expenses with edit/delete + Add button
-// Manages modal state for ExpenseForm
+// Expense list — shows expenses with edit/delete plus an add button.
+// Owns the modal state for ExpenseForm.
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -55,7 +55,7 @@ export default function ExpenseList({
     if (result.error) {
       showToast(result.error, "error");
     } else {
-      showToast("Expense delete ho gaya! 🗑️");
+      showToast("Expense deleted! 🗑️");
     }
   }
 
@@ -78,26 +78,26 @@ export default function ExpenseList({
 
   return (
     <>
-      {/* Add Button */}
+      {/* Add button */}
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
         <button onClick={handleAdd} className="btn-primary" id="add-expense-btn">
           ＋ Add Expense
         </button>
       </div>
 
-      {/* Expense List */}
+      {/* Expense list */}
       <div className="card" style={{ overflow: "hidden" }}>
         {expenses.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">💸</div>
-            <div className="empty-state-title">Koi expense nahi mila!</div>
+            <div className="empty-state-title">No expenses found!</div>
             <div className="empty-state-desc">
               {totalCount > 0
-                ? "Is page pe kuch nahi — filter ya page badal ke dekho"
-                : "Is mahine ka pehla kharcha add karo 🚀"}
+                ? "Nothing on this page — try a different filter or page"
+                : "Add your first expense for this month 🚀"}
             </div>
             <button onClick={handleAdd} className="btn-primary" style={{ marginTop: "8px" }}>
-              ＋ Pehla Expense Add Karo
+              ＋ Add Your First Expense
             </button>
           </div>
         ) : (
@@ -154,7 +154,7 @@ export default function ExpenseList({
               ))}
             </div>
 
-            {/* Pagination — pehle list sirf 50 tak dikhti thi aur baaki gayab */}
+            {/* Pagination — the list used to stop at 50 and hide the rest */}
             {totalCount > 0 && (
               <div className="pagination-bar">
                 <span className="pagination-info">
@@ -189,7 +189,7 @@ export default function ExpenseList({
         )}
       </div>
 
-      {/* Expense Form Modal */}
+      {/* Expense form modal */}
       {showForm && (
         <ExpenseForm
           expense={editingExpense}
@@ -202,7 +202,7 @@ export default function ExpenseList({
         />
       )}
 
-      {/* Delete confirmation — pehle ek click pe hi delete ho jaata tha */}
+      {/* Delete confirmation — a single click used to delete straight away */}
       {confirmDelete && (
         <div className="modal-overlay" onClick={() => setConfirmDelete(null)}>
           <div
@@ -210,14 +210,14 @@ export default function ExpenseList({
             style={{ maxWidth: "420px" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="modal-title">🗑️ Expense delete karein?</h2>
+            <h2 className="modal-title">🗑️ Delete this expense?</h2>
             <p style={{ fontSize: "0.88rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>
               <strong>
                 {confirmDelete.categoryEmoji} {confirmDelete.categoryName}
               </strong>{" "}
               — {formatCurrency(confirmDelete.amount)} ({formatDate(confirmDelete.date)})
               <br />
-              Ye wapas nahi aayega.
+              This cannot be undone.
             </p>
             <div className="modal-actions">
               <button
@@ -225,7 +225,7 @@ export default function ExpenseList({
                 onClick={() => setConfirmDelete(null)}
                 disabled={!!deletingId}
               >
-                Rehne do
+                Keep it
               </button>
               <button
                 className="btn-danger"
@@ -235,7 +235,7 @@ export default function ExpenseList({
                 {deletingId ? (
                   <span className="spinner" style={{ width: "16px", height: "16px" }} />
                 ) : (
-                  "Haan, delete karo"
+                  "Yes, delete it"
                 )}
               </button>
             </div>

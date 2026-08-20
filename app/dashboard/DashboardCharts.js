@@ -1,8 +1,8 @@
 "use client";
 
-// 📊 Dashboard Charts — Category pie + 6-month trend bar
-// Recharts client-only hai, isliye ye component "use client" hai aur
-// data server component se serialized props ke through aata hai.
+// Dashboard charts — a category pie and a 6-month trend bar chart.
+// Recharts is client-only, so this component is "use client" and the data
+// arrives from the server component as serialized props.
 
 import {
   PieChart,
@@ -67,16 +67,16 @@ export default function DashboardCharts({ categoryData = [], trendData = [] }) {
   const hasCategory = categoryData.length > 0;
   const hasTrend = trendData.some((t) => t.amount > 0);
 
-  // Bilkul naya user — dono khaali
+  // Brand new user — both are empty
   if (!hasCategory && !hasTrend) {
     return (
       <div className="card" style={{ padding: "48px 24px", textAlign: "center" }}>
         <div style={{ fontSize: "3rem", marginBottom: "16px" }}>📊</div>
         <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "8px" }}>
-          Abhi charts ke liye data nahi hai
+          No data for charts yet
         </h3>
         <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-          Kuch expenses add karo — phir yahan sundar charts dikhenge! 🎨
+          Add a few expenses and your charts will appear here! 🎨
         </p>
       </div>
     );
@@ -86,13 +86,13 @@ export default function DashboardCharts({ categoryData = [], trendData = [] }) {
     <div className="dashboard-grid-2" style={{ marginTop: 0 }}>
       {/* Category Pie */}
       <div className="card card-padded">
-        <h3 className="panel-title">📊 Category Breakdown — Is Mahine</h3>
+        <h3 className="panel-title">📊 Category Breakdown — This Month</h3>
 
         {!hasCategory ? (
           <div className="empty-state" style={{ padding: "32px 16px" }}>
             <div className="empty-state-icon">🥧</div>
-            <div className="empty-state-title">Is mahine koi kharcha nahi</div>
-            <div className="empty-state-desc">Achhi baat hai — ya phir add karna bhool gaye? 😄</div>
+            <div className="empty-state-title">No spending this month</div>
+            <div className="empty-state-desc">That&apos;s good news — unless you forgot to add it 😄</div>
           </div>
         ) : (
           <div style={{ display: "flex", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
@@ -153,7 +153,7 @@ export default function DashboardCharts({ categoryData = [], trendData = [] }) {
               ))}
               {categoryData.length > 6 && (
                 <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                  +{categoryData.length - 6} aur categories
+                  +{categoryData.length - 6} more categories
                 </div>
               )}
             </div>
@@ -163,7 +163,7 @@ export default function DashboardCharts({ categoryData = [], trendData = [] }) {
 
       {/* 6-Month Trend */}
       <div className="card card-padded">
-        <h3 className="panel-title">📈 Last 6 Months — Kitna Kharch Hua</h3>
+        <h3 className="panel-title">📈 Last 6 Months — Total Spending</h3>
         <div style={{ width: "100%", height: "240px" }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={trendData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>

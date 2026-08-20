@@ -32,7 +32,7 @@ cp .env.example .env      # then fill in the values (see below)
 # 3. Run database migrations
 npx prisma migrate deploy  # or for first time: npx prisma migrate dev
 
-# 4. Seed default Indian categories
+# 4. Seed default categories
 npx prisma db seed
 
 # 5. Start the dev server
@@ -54,6 +54,23 @@ npm run dev                # http://localhost:3000
 http://localhost:3000/api/auth/callback/google      # local
 https://<your-domain>/api/auth/callback/google      # production
 ```
+
+### Deploying to Vercel
+
+Two things matter when deploying to a serverless host:
+
+1. **The build must run `prisma generate`.** Vercel caches dependencies between
+   deploys, so the `@prisma/client` postinstall hook does not run again and the
+   generated client would be missing at build time. The `build` script already
+   handles this: `prisma generate && next build`.
+
+2. **Use Neon's pooled connection string for `DATABASE_URL`** (its hostname
+   contains `-pooler`). With the direct endpoint, every serverless instance
+   opens its own connection pool and the database quickly runs out of
+   connections. A direct connection is fine for local development.
+
+Also remember to set `NEXTAUTH_URL` to the production URL and to add the
+production callback to the Google Cloud Console.
 
 ### If the database was previously created with `prisma db push`
 
@@ -89,7 +106,7 @@ lib/
 prisma/
   schema.prisma           8 models
   migrations/0_init/      Initial schema SQL
-  seed.js                 13 default Indian categories
+  seed.js                 13 default categories
 ```
 
 ---

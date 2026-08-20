@@ -1,7 +1,7 @@
 "use client";
 
-// 🔍 Expense Filters — Month/Year navigation + Category filter
-// Uses URL search params for shareable filter state
+// Expense filters — month/year navigation plus a category filter.
+// Filter state lives in the URL search params so it can be shared.
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { getCurrentMonthYear, getShortMonthName, shiftMonth } from "@/lib/utils";
@@ -19,7 +19,8 @@ export default function ExpenseFilters({
   const isThisMonth = currentMonth === today.month && currentYear === today.year;
 
   function push(params) {
-    // Filter badla toh page 1 pe wapas — warna "page 3" pe khali list dikhti hai
+    // A changed filter goes back to page 1, otherwise "page 3" shows an
+    // empty list
     params.delete("page");
     const qs = params.toString();
     router.push(`/dashboard/expenses${qs ? `?${qs}` : ""}`);
@@ -49,7 +50,7 @@ export default function ExpenseFilters({
 
   return (
     <div className="expense-filters-bar">
-      {/* Month Navigator */}
+      {/* Month navigator */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
         <div className="month-navigator">
           <button
@@ -77,12 +78,12 @@ export default function ExpenseFilters({
 
         {!isThisMonth && (
           <button type="button" className="filter-chip" onClick={goToday}>
-            ↩ Is mahine pe wapas
+            ↩ Back to this month
           </button>
         )}
       </div>
 
-      {/* Category Filter */}
+      {/* Category filter */}
       <select
         className="select-field"
         style={{ width: "auto", minWidth: "180px" }}

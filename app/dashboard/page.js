@@ -1,5 +1,5 @@
-// 📊 Dashboard — Server Component (Phase 3)
-// Is mahine ka total, category breakdown, 6-month trend, budget progress
+// Dashboard — server component (phase 3)
+// This month's total, category breakdown, 6-month trend and budget progress
 
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -26,7 +26,7 @@ export default async function DashboardPage() {
   const lastMonth = shiftMonth(month, year, -1);
   const lastRange = getMonthRange(lastMonth.month, lastMonth.year);
 
-  // Pichle 6 mahine (chalu month sabse aakhir mein)
+  // The last 6 months, with the current month last
   const trendMonths = [];
   for (let i = 5; i >= 0; i--) {
     let m = month - i;
@@ -38,7 +38,7 @@ export default async function DashboardPage() {
     trendMonths.push({ month: m, year: y });
   }
 
-  // ===== FETCH DATA — sab parallel =====
+  // ===== FETCH DATA — all in parallel =====
   const [
     monthlyTotal,
     lastMonthTotal,
@@ -138,10 +138,10 @@ export default async function DashboardPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">
-            Namaste, {user?.name?.split(" ")[0] || "Dost"} 👋
+            Welcome back, {user?.name?.split(" ")[0] || "there"} 👋
           </h1>
           <p className="page-subtitle">
-            {getMonthName(month)} {year} — Yahan hai teri spending ki poori picture
+            {getMonthName(month)} {year} — here is the full picture of your spending
           </p>
         </div>
         <Link href="/dashboard/expenses" className="btn-primary">
@@ -152,7 +152,7 @@ export default async function DashboardPage() {
       {/* Stat Cards */}
       <div className="stat-cards-grid">
         <div className="stat-card">
-          <div className="stat-card-label">💸 Is Mahine Kharch</div>
+          <div className="stat-card-label">💸 Spent This Month</div>
           <div className="stat-card-value">{formatCurrency(totalSpent)}</div>
           {lastSpent > 0 ? (
             <div
@@ -165,13 +165,13 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="stat-card-change" style={{ color: "var(--text-muted)" }}>
-              pichle mahine ka data nahi
+              no data for last month
             </div>
           )}
         </div>
 
         <div className="stat-card">
-          <div className="stat-card-label">🎯 Budget Bacha</div>
+          <div className="stat-card-label">🎯 Budget Left</div>
           {totalBudget > 0 ? (
             <>
               <div
@@ -182,8 +182,8 @@ export default async function DashboardPage() {
               </div>
               <div className="stat-card-change" style={{ color: "var(--text-muted)" }}>
                 {budgetLeft >= 0
-                  ? `${formatCurrency(totalBudget)} mein se — safe hai ✅`
-                  : "budget cross ho gaya! ⚠️"}
+                  ? `out of ${formatCurrency(totalBudget)} — you're on track ✅`
+                  : "budget exceeded! ⚠️"}
               </div>
             </>
           ) : (
@@ -193,7 +193,7 @@ export default async function DashboardPage() {
               </div>
               <div className="stat-card-change" style={{ color: "var(--text-muted)" }}>
                 <Link href="/dashboard/budgets" style={{ color: "var(--accent)" }}>
-                  budget set karo →
+                  set a budget →
                 </Link>
               </div>
             </>
@@ -204,7 +204,7 @@ export default async function DashboardPage() {
           <div className="stat-card-label">📝 Transactions</div>
           <div className="stat-card-value">{expenseCount}</div>
           <div className="stat-card-change" style={{ color: "var(--text-muted)" }}>
-            is mahine
+            this month
           </div>
         </div>
 
@@ -227,7 +227,7 @@ export default async function DashboardPage() {
       <DashboardCharts
         categoryData={categoryData.map((c) => ({
           ...c,
-          amount: c.amount / 100, // paise → rupees (display ke liye)
+          amount: c.amount / 100, // paise → rupees (for display)
         }))}
         trendData={trendData}
       />
@@ -240,12 +240,13 @@ export default async function DashboardPage() {
           {budgetStatus.length === 0 ? (
             <div className="empty-state" style={{ padding: "32px 16px" }}>
               <div className="empty-state-icon">🎯</div>
-              <div className="empty-state-title">Koi budget nahi set hai</div>
+              <div className="empty-state-title">No budgets set yet</div>
               <div className="empty-state-desc">
+                Head to the{" "}
                 <Link href="/dashboard/budgets" style={{ color: "var(--accent)" }}>
                   Budgets page
                 </Link>{" "}
-                pe jaake set karo!
+                to set one up!
               </div>
             </div>
           ) : (
@@ -306,15 +307,15 @@ export default async function DashboardPage() {
               href="/dashboard/expenses"
               style={{ fontSize: "0.8rem", color: "var(--accent)", fontWeight: 600 }}
             >
-              Sab dekho →
+              View all →
             </Link>
           </div>
 
           {recentExpenses.length === 0 ? (
             <div className="empty-state" style={{ padding: "32px 16px" }}>
               <div className="empty-state-icon">💸</div>
-              <div className="empty-state-title">Abhi koi expense nahi!</div>
-              <div className="empty-state-desc">Pehla kharcha add karo 🚀</div>
+              <div className="empty-state-title">No expenses yet!</div>
+              <div className="empty-state-desc">Add your first one 🚀</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>

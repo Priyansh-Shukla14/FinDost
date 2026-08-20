@@ -8,12 +8,12 @@ export default function UpgradePage() {
       icon="✨"
       title="FinDost Pro"
       phase="Phase 7"
-      description="Core features hamesha free rahenge. Pro un logon ke liye hai jinhe unlimited FinBot aur har mahine PDF report chahiye — ₹99/month."
+      description="The core features stay free forever. Pro is for anyone who wants unlimited FinBot and a monthly PDF report — ₹99/month."
       points={[
         "Unlimited FinBot messages",
-        "Har mahine PDF report email pe",
-        "Razorpay se payment (pehle Test Mode)",
-        "Free plan mein expenses, budgets, dashboard — sab included",
+        "A monthly PDF report delivered by email",
+        "Payments through Razorpay (test mode first)",
+        "Expenses, budgets and the dashboard remain free",
       ]}
     />
   );

@@ -1,7 +1,7 @@
 "use client";
 
-// 🎯 Budget Form — Set/Update budgets per category
-// Quick-set buttons + inline editing + month navigation
+// Budget form — set or update a budget per category.
+// Quick-set buttons, inline editing and month navigation.
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,7 +16,7 @@ export default function BudgetForm({ categories, existingBudgets, month, year })
   const [loading, setLoading] = useState(null); // categoryId being saved
   const [toast, setToast] = useState(null);
   const [amounts, setAmounts] = useState(() => {
-    // Initialize with existing budget amounts (paise → rupees)
+    // Initialize with the existing budget amounts (paise → rupees)
     const initial = {};
     existingBudgets.forEach((b) => {
       initial[b.categoryId] = b.budgetAmount > 0 ? (b.budgetAmount / 100).toString() : "";
@@ -40,7 +40,7 @@ export default function BudgetForm({ categories, existingBudgets, month, year })
   async function handleSave(categoryId) {
     const amount = parseFloat(amounts[categoryId]);
     if (!amount || amount <= 0) {
-      showToast("Valid amount dalo!", "error");
+      showToast("Enter a valid amount!", "error");
       return;
     }
 
@@ -58,7 +58,7 @@ export default function BudgetForm({ categories, existingBudgets, month, year })
     if (result.error) {
       showToast(result.error, "error");
     } else {
-      showToast("Budget set ho gaya! 🎯");
+      showToast("Budget set! 🎯");
     }
   }
 
@@ -73,7 +73,7 @@ export default function BudgetForm({ categories, existingBudgets, month, year })
       showToast(result.error, "error");
     } else {
       setAmounts((prev) => ({ ...prev, [categoryId]: "" }));
-      showToast("Budget hata diya! 🗑️");
+      showToast("Budget removed! 🗑️");
     }
   }
 
@@ -82,10 +82,10 @@ export default function BudgetForm({ categories, existingBudgets, month, year })
       <div className="card" style={{ padding: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
           <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>
-            💰 Budget Set Karo
+            💰 Set a Budget
           </h3>
 
-          {/* Month Navigator */}
+          {/* Month navigator */}
           <div className="month-navigator">
             <button onClick={() => goMonth(-1)} className="month-nav-btn">←</button>
             <span className="month-nav-label">{getMonthName(month)} {year}</span>

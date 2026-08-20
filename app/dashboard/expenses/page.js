@@ -1,5 +1,5 @@
-// 💸 Expenses Page — Server Component
-// Shows expense list with filters, stats, and add button
+// Expenses page — server component
+// Shows the expense list with filters, stats and an add button
 
 import { prisma } from "@/lib/prisma";
 import { requirePageUserId } from "@/lib/session";
@@ -18,7 +18,7 @@ export const metadata = {
   title: "Expenses — FinDost",
 };
 
-// month/year/page ko safe range mein rakho — URL se kuch bhi aa sakta hai
+// Keep month/year/page inside a safe range — anything can arrive in the URL
 function clampInt(value, min, max, fallback) {
   const n = parseInt(value, 10);
   if (!Number.isFinite(n) || n < min || n > max) return fallback;
@@ -36,8 +36,8 @@ export default async function ExpensesPage({ searchParams }) {
 
   const { start: startOfMonth, end: endOfMonth } = getMonthRange(month, year);
 
-  // Ek hi where clause list aur stats dono ke liye — warna filter lagane pe
-  // list to filter hoti thi par stat cards poore month ke dikhate the
+  // One where clause for both the list and the stats — otherwise applying a
+  // filter narrowed the list while the stat cards still showed the whole month
   const whereClause = {
     userId,
     date: { gte: startOfMonth, lte: endOfMonth },
@@ -70,7 +70,7 @@ export default async function ExpensesPage({ searchParams }) {
   const totalCount = totals._count._all || 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / EXPENSES_PER_PAGE));
 
-  // Daily average — chalu mahine mein sirf beete hue dinon ka
+  // Daily average — for the current month, only over the days so far
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const isCurrentMonth = month === currentMonth && year === currentYear;
   const daysPassed = isCurrentMonth ? getISTParts().day : daysInMonth;
@@ -81,7 +81,7 @@ export default async function ExpensesPage({ searchParams }) {
       ? categories.find((c) => c.id === categoryFilter)
       : null;
 
-  // Client components ke liye serialize (Date objects pass nahi kar sakte)
+  // Serialize for the client components (Date objects can't be passed through)
   const serializedExpenses = expenses.map((e) => ({
     id: e.id,
     amount: e.amount,
@@ -108,19 +108,19 @@ export default async function ExpensesPage({ searchParams }) {
         <div>
           <h1 className="page-title">💸 Expenses</h1>
           <p className="page-subtitle">
-            {getMonthName(month)} {year} — Apne kharche track karo
+            {getMonthName(month)} {year} — keep track of where your money goes
             {activeCategory ? ` · ${activeCategory.emoji} ${activeCategory.name}` : ""}
           </p>
         </div>
       </div>
 
-      {/* Stat Cards — ye ab filter ko bhi respect karte hain */}
+      {/* Stat cards — these respect the active filter too */}
       <div className="stat-cards-grid" style={{ marginBottom: "24px" }}>
         <div className="stat-card">
           <div className="stat-card-label">💰 Total Spent</div>
           <div className="stat-card-value">{formatCurrency(totalSpent)}</div>
           <div className="stat-card-change" style={{ color: "var(--text-muted)" }}>
-            {activeCategory ? `${activeCategory.name} mein` : `${getMonthName(month)} mein`}
+            {activeCategory ? `in ${activeCategory.name}` : `in ${getMonthName(month)}`}
           </div>
         </div>
         <div className="stat-card">
@@ -134,12 +134,12 @@ export default async function ExpensesPage({ searchParams }) {
           <div className="stat-card-label">📊 Daily Average</div>
           <div className="stat-card-value">{formatCurrency(dailyAverage)}</div>
           <div className="stat-card-change" style={{ color: "var(--text-muted)" }}>
-            {daysPassed} din mein
+            over {daysPassed} days
           </div>
         </div>
       </div>
 
-      {/* Filters + Expense List (Client Components) */}
+      {/* Filters + expense list (client components) */}
       <ExpenseFilters
         currentMonth={month}
         currentYear={year}

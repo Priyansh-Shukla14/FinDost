@@ -8,12 +8,12 @@ export default function TaxPage() {
       icon="📋"
       title="80C Tax Saver"
       phase="Phase 7"
-      description="PPF, ELSS, LIC, NPS — saal bhar ka 80C investment ek jagah. ₹1.5 lakh ki limit ke against kitna bacha hai, hamesha pata rahega."
+      description="PPF, ELSS, LIC, NPS — a full year of Section 80C investments in one place, with your remaining headroom against the ₹1.5 lakh limit always visible."
       points={[
-        "₹1,50,000 limit ke against progress",
-        "Type-wise breakdown (PPF / ELSS / LIC / NPS)",
-        "Financial year ke hisaab se",
-        "Tax season pe ek hi jagah se saara data",
+        "Progress against the ₹1,50,000 limit",
+        "Breakdown by type (PPF / ELSS / LIC / NPS)",
+        "Organised by financial year",
+        "Everything in one place at tax time",
       ]}
     />
   );
