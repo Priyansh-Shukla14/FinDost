@@ -1,21 +1,20 @@
 # 💰 FinDost — Your AI Finance Companion
 
-India ke liye banaya gaya personal finance tracker. Chai se lekar EMI tak — har kharcha
-track karo, category-wise budget set karo, aur dashboard pe apni poori spending picture dekho.
+A personal finance tracker built for India. From your morning chai to your monthly EMI — track every expense, set category-wise budgets, and see your complete spending picture on a beautiful dashboard.
 
-> **Status:** Phase 3 complete — auth, expenses, categories, budgets aur dashboard live hain.
-> Phase 4 (deploy) se aage ka kaam abhi baaki hai.
+> **Status:** Phase 3 complete — auth, expenses, categories, budgets, and dashboard are live.  
+> Phase 4 (deployment) and beyond are in progress.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Kya use hua |
+| Layer | Technology |
 |---|---|
 | Framework | Next.js 14 (App Router, JavaScript) |
 | Database | PostgreSQL (Neon) + Prisma ORM |
-| Auth | NextAuth — Google OAuth + email/password (bcrypt) |
-| Validation | Zod (server-side, har action pe) |
+| Auth | NextAuth — Google OAuth + Email/Password (bcrypt) |
+| Validation | Zod (server-side, on every action) |
 | Charts | Recharts |
 | Styling | Custom CSS design system (`app/globals.css`) + Tailwind |
 
@@ -24,42 +23,41 @@ track karo, category-wise budget set karo, aur dashboard pe apni poori spending 
 ## 🚀 Local Setup
 
 ```bash
-# 1. Dependencies
+# 1. Install dependencies
 npm install
 
-# 2. Environment
-cp .env.example .env      # phir values bharo (neeche dekho)
+# 2. Set up environment variables
+cp .env.example .env      # then fill in the values (see below)
 
-# 3. Database schema
-npx prisma migrate deploy  # ya pehli baar: npx prisma migrate dev
+# 3. Run database migrations
+npx prisma migrate deploy  # or for first time: npx prisma migrate dev
 
-# 4. Default Indian categories
+# 4. Seed default Indian categories
 npx prisma db seed
 
-# 5. Chalao
+# 5. Start the dev server
 npm run dev                # http://localhost:3000
 ```
 
-### Environment variables
+### Environment Variables
 
-| Variable | Kahan se milega |
+| Variable | Where to get it |
 |---|---|
-| `DATABASE_URL` | [neon.tech](https://neon.tech) pe free Postgres banao |
-| `NEXTAUTH_SECRET` | Koi bhi random string — `openssl rand -base64 32` |
-| `NEXTAUTH_URL` | Local: `http://localhost:3000` · Prod: apna domain |
+| `DATABASE_URL` | Create a free Postgres database at [neon.tech](https://neon.tech) |
+| `NEXTAUTH_SECRET` | Any random string — generate with `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | Local: `http://localhost:3000` · Production: your domain |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | [console.cloud.google.com](https://console.cloud.google.com) |
 
-**Google OAuth redirect URI** (Cloud Console mein add karna zaroori hai):
+**Google OAuth Redirect URI** (must be added in the Google Cloud Console):
 
 ```
 http://localhost:3000/api/auth/callback/google      # local
 https://<your-domain>/api/auth/callback/google      # production
 ```
 
-### Agar database pehle se `prisma db push` se bana hai
+### If the database was previously created with `prisma db push`
 
-Migrations folder baad mein add hua hai, isliye ek baar baseline mark kar do —
-warna Prisma "0_init" ko dobara chalane ki koshish karega:
+The migrations folder was added later, so you need to baseline it once — otherwise Prisma will try to re-run `0_init`:
 
 ```bash
 npx prisma migrate resolve --applied 0_init
@@ -67,76 +65,75 @@ npx prisma migrate resolve --applied 0_init
 
 ---
 
-## 📁 Structure
+## 📂 Project Structure
 
 ```
 app/
-  page.js                 landing page
-  login/ signup/          auth pages
+  page.js                 Landing page
+  login/ signup/          Auth pages
   api/auth/               NextAuth + signup route
   dashboard/
-    page.js               dashboard (stats + charts)
-    expenses/             expense CRUD, filters, pagination
-    budgets/              per-category monthly budgets
-    finbot/ scanner/ ...  aage ke phases ke placeholder pages
+    page.js               Dashboard (stats + charts)
+    expenses/             Expense CRUD, filters, pagination
+    budgets/              Per-category monthly budgets
+    finbot/ scanner/ ...  Placeholder pages for future phases
   components/             Navbar, Sidebar, DashboardChrome, AuthProvider
 lib/
-  actions/                server actions (expense, budget, category)
-  auth.js                 NextAuth config
+  actions/                Server actions (expense, budget, category)
+  auth.js                 NextAuth configuration
   prisma.js               Prisma singleton
-  session.js              requireUserId() — har action isse userId leta hai
-  utils.js                paise/₹, date + timezone helpers
+  session.js              requireUserId() — every action gets userId from here
+  utils.js                Currency formatting (₹), date & timezone helpers
   validations.js          Zod schemas
-  constants.js            page size, colors
+  constants.js            Page size, colors
 prisma/
   schema.prisma           8 models
-  migrations/0_init/      initial schema SQL
+  migrations/0_init/      Initial schema SQL
   seed.js                 13 default Indian categories
 ```
 
 ---
 
-## 📐 Design decisions
+## 📐 Design Decisions
 
-**Paisa hamesha integer paise mein.** `₹150` DB mein `15000` hai. Float mein paise
-rakhne se rounding errors aate hain — `formatCurrency()` display ke waqt convert karta hai.
+**Money is always stored as integer paise.** ₹150 is stored as `15000` in the database. Storing money as floats leads to rounding errors — `formatCurrency()` converts to display format at render time.
 
-**Date sirf calendar din hai, time nahi.** Har expense date UTC midnight pe store hoti
-hai aur display bhi UTC mein hota hai. "Is mahine" ka matlab hamesha IST se decide hota
-hai (`getCurrentMonthYear()`), chahe server UTC pe ho — warna Vercel pe deploy karte hi
-mahine ke pehle/aakhri din ke expenses galat month mein chale jaate.
+**Dates represent calendar days, not timestamps.** Every expense date is stored at UTC midnight and displayed in UTC. "This month" is always determined using IST (`getCurrentMonthYear()`), regardless of the server's timezone — otherwise, deploying on Vercel (UTC) causes expenses on the first/last day of the month to land in the wrong month.
 
-**userId kabhi client se nahi aata.** Har server action `requireUserId()` se session se
-userId leta hai. Update/delete `updateMany`/`deleteMany` with `{ id, userId }` use karte
-hain — ek hi query mein ownership check + write, koi race condition nahi.
+**userId never comes from the client.** Every server action extracts the userId from the session via `requireUserId()`. Updates and deletes use `updateMany`/`deleteMany` with `{ id, userId }` — ownership check and write happen in a single query, eliminating race conditions.
 
-**Validation dono taraf, bharosa sirf server pe.** Client pe HTML validation UX ke liye
-hai; asli check `lib/validations.js` ke Zod schemas hain, jo har action mein chalte hain.
+**Validation on both sides, trust only the server.** Client-side HTML validation exists for UX; the real enforcement is done by Zod schemas in `lib/validations.js`, which run inside every server action.
 
 ---
 
-## ✅ Phase Progress
+## 📋 Phase Progress
 
 - [x] **Phase 1** — Setup, Prisma schema, NextAuth (Google + credentials), protected routes
-- [x] **Phase 2** — Expense CRUD, categories (13 default + custom), monthly budgets, Zod
-- [x] **Phase 3** — Dashboard: stat cards, category pie, 6-month trend, budget progress
-- [ ] **Phase 4** — Vercel deploy
-- [ ] **Phase 5** — FinBot (function calling) + receipt scanner
+- [x] **Phase 2** — Expense CRUD, categories (13 default + custom), monthly budgets, Zod validation
+- [x] **Phase 3** — Dashboard: stat cards, category pie chart, 6-month trend, budget progress bars
+- [ ] **Phase 4** — Vercel deployment
+- [ ] **Phase 5** — FinBot (AI function calling) + receipt scanner
 - [ ] **Phase 6** — Budget alerts, subscription detection, CSV import
-- [ ] **Phase 7** — Razorpay Pro, PDF reports, goals, 80C tracker
+- [ ] **Phase 7** — Razorpay Pro integration, PDF reports, goals, 80C tax tracker
 
-Poori roadmap: [`PHASES_README.md`](./PHASES_README.md)
+Full roadmap: [`PHASES_README.md`](./PHASES_README.md)
 
 ---
 
-## 🐛 Jo mushkil tha (aur kaise solve hua)
+## 🔧 Challenges & Solutions
 
-- **Seed dobara chalane pe duplicate categories** — system categories ka `userId` NULL hai,
-  aur Postgres do NULL ko alag maanta hai, isliye `@@unique([name, userId])` ne unhe roka
-  nahi. `upsert` hata ke `findFirst` + create/update kiya.
-- **Timezone se mahina khisakna** — month boundaries server ke local time se ban rahi thi
-  par dates UTC mein store thi. Sab kuch `getMonthRange()` (UTC) + IST-based current month
-  pe le aaya.
-- **Stats aur list ka mismatch** — expense list pe category filter lagta tha par stat cards
-  poore month ke dikhate the, aur list sirf 50 tak rukti thi. Ab ek hi `where` clause dono
-  ke liye, aur proper pagination.
+- **Duplicate categories on re-seeding** — System categories have `userId` set to `NULL`, and Postgres treats two NULLs as distinct, so `@@unique([name, userId])` didn't prevent duplicates. Fixed by replacing `upsert` with a `findFirst` + create/update pattern.
+
+- **Month shifting due to timezone mismatch** — Month boundaries were calculated using the server's local time, but dates were stored in UTC. Resolved by standardizing everything on `getMonthRange()` (UTC) with IST-based current month detection.
+
+- **Stats and list data mismatch** — The expense list applied category filters but stat cards showed the entire month, and the list capped at 50 items. Fixed by sharing a single `where` clause across both queries and implementing proper pagination.
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+<p align="center">Made with ❤️ in India</p>
