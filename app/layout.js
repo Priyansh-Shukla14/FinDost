@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import AuthProvider from "@/app/components/AuthProvider";
 
 export const metadata = {
@@ -19,6 +20,9 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AuthProvider>{children}</AuthProvider>
+        {/* Vercel Web Analytics — page views and visitor counts.
+            Sends no data until it is enabled in the Vercel dashboard. */}
+        <Analytics />
       </body>
     </html>
   );
