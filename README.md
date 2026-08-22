@@ -4,8 +4,9 @@ A personal finance tracker built for India. From your morning chai to your month
 
 **Live:** [fin-dost.vercel.app](https://fin-dost.vercel.app)
 
-> **Status:** Phase 3 complete — auth, expenses, categories, budgets, and dashboard are live.  
-> Phase 4 (deployment) and beyond are in progress.
+> **Status:** Phase 4 complete — the app is deployed and live, with auth, expenses,
+> categories, budgets and the dashboard all working in production.
+> Phase 5 (AI features) onwards is in progress.
 
 ---
 
@@ -130,7 +131,7 @@ prisma/
 - [x] **Phase 1** — Setup, Prisma schema, NextAuth (Google + credentials), protected routes
 - [x] **Phase 2** — Expense CRUD, categories (13 default + custom), monthly budgets, Zod validation
 - [x] **Phase 3** — Dashboard: stat cards, category pie chart, 6-month trend, budget progress bars
-- [ ] **Phase 4** — Vercel deployment
+- [x] **Phase 4** — Vercel deployment (live at [fin-dost.vercel.app](https://fin-dost.vercel.app))
 - [ ] **Phase 5** — FinBot (AI function calling) + receipt scanner
 - [ ] **Phase 6** — Budget alerts, subscription detection, CSV import
 - [ ] **Phase 7** — Razorpay Pro integration, PDF reports, goals, 80C tax tracker
