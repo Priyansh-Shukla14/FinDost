@@ -2,6 +2,8 @@
 
 A personal finance tracker built for India. From your morning chai to your monthly EMI — track every expense, set category-wise budgets, and see your complete spending picture on a beautiful dashboard.
 
+**Live:** [fin-dost.vercel.app](https://fin-dost.vercel.app)
+
 > **Status:** Phase 3 complete — auth, expenses, categories, budgets, and dashboard are live.  
 > Phase 4 (deployment) and beyond are in progress.
 
