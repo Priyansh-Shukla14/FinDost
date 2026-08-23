@@ -1,20 +1,41 @@
-import ComingSoon from "@/app/components/ComingSoon";
+// FinBot page (phase 5)
+
+import { requirePageUserId } from "@/lib/session";
+import { getAIQuota } from "@/lib/ai/rateLimit";
+import { isAIConfigured } from "@/lib/ai/gemini";
+import FinBotChat from "./FinBotChat";
 
 export const metadata = { title: "FinBot — FinDost" };
 
-export default function FinBotPage() {
+export default async function FinBotPage() {
+  const userId = await requirePageUserId();
+  const quota = await getAIQuota(userId);
+  const configured = isAIConfigured();
+
   return (
-    <ComingSoon
-      icon="🤖"
-      title="FinBot"
-      phase="Phase 5"
-      description="Ask about your spending in plain language — 'how much went on food this month?' FinBot answers from your real data instead of guessing."
-      points={[
-        "Function calling — the bot runs your query on the server",
-        "Your data only: every query is scoped to session.user.id",
-        "Answers match the dashboard numbers exactly",
-        "Daily message limit on the free plan",
-      ]}
-    />
+    <div>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">🤖 FinBot</h1>
+          <p className="page-subtitle">
+            Ask about your spending in plain language — answers come from your real data
+          </p>
+        </div>
+      </div>
+
+      {!configured ? (
+        <div className="card card-padded">
+          <div className="empty-state">
+            <div className="empty-state-icon">🔌</div>
+            <div className="empty-state-title">FinBot is not configured</div>
+            <div className="empty-state-desc">
+              Add a <code>GEMINI_API_KEY</code> to the environment and restart the app.
+            </div>
+          </div>
+        </div>
+      ) : (
+        <FinBotChat quota={quota} />
+      )}
+    </div>
   );
 }
