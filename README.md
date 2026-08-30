@@ -148,6 +148,22 @@ Full roadmap: [`PHASES_README.md`](./PHASES_README.md)
 
 - **Stats and list data mismatch** — The expense list applied category filters but stat cards showed the entire month, and the list capped at 50 items. Fixed by sharing a single `where` clause across both queries and implementing proper pagination.
 
+- **A slow dashboard that was slow for the wrong reason** — Opening the dashboard took about two seconds. The obvious suspect was the 13 database queries the page fired, so I cut them to 4 (six monthly aggregates became one `date_trunc` group-by, and the category breakdown now joins `Category` instead of fetching the table to match IDs in JS). Measuring it honestly, that barely helped: 2030ms → 1965ms cold, 441ms → 420ms warm.
+
+  The real cost was the **first connection**. Neon runs in `ap-southeast-1` and one TLS handshake from India costs ~1.9s, regardless of how many queries follow. Prisma opens the pool lazily, so whoever loaded the dashboard first paid for it. Connecting at start-up — and firing four throwaway `SELECT 1`s, since `$connect()` opens only one connection while the page needs four at once — moved that cost off the request:
+
+  | Warm-up at start-up | First dashboard load |
+  |---|---|
+  | none | 2004ms |
+  | `$connect()` only | 1243ms |
+  | `$connect()` + 4 parallel | **460ms** |
+
+  Separately, Recharts was 115 kB of the dashboard's 211 kB First Load JS, blocking the paint of stat cards and tables that need no JavaScript at all. Lazy-loading it dropped First Load JS to 97 kB.
+
+  Two lessons worth more than the fix: profile before optimising — the change I was confident about was worth 3% — and benchmark warm, since the first run of anything measures connection setup, not the code.
+
+- **The pooled connection string made local development slower** — Neon's docs push the pooled endpoint, so I switched to it expecting a speed-up and got the opposite: 779ms against 350ms direct on the same workload. PgBouncer adds a network hop, and Prisma's `pgbouncer=true` disables prepared statements so every query re-parses. Pooling exists to stop many short-lived serverless instances from exhausting the connection limit — a real problem on Vercel, and no problem at all for one long-running dev server. The app now uses the direct endpoint locally and the pooled one in production, with `directUrl` in the schema so migrations always get a real session.
+
 ---
 
 ## 📄 License

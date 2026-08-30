@@ -14,17 +14,21 @@ import {
   shiftMonth,
   statusFromPercent,
 } from "@/lib/utils";
-import DashboardCharts from "./DashboardCharts";
+import ChartsSection from "./ChartsSection";
+
+// Postgres SUM()/COUNT() come back as BigInt, which React cannot serialize
+const num = (value) => Number(value ?? 0);
 
 export default async function DashboardPage() {
-  const userId = await requirePageUserId();
-  const user = await getSessionUser();
+  const [userId, user] = await Promise.all([
+    requirePageUserId(),
+    getSessionUser(),
+  ]);
 
   const { month, year } = getCurrentMonthYear();
   const { start: startOfMonth, end: endOfMonth } = getMonthRange(month, year);
 
   const lastMonth = shiftMonth(month, year, -1);
-  const lastRange = getMonthRange(lastMonth.month, lastMonth.year);
 
   // The last 6 months, with the current month last
   const trendMonths = [];
@@ -37,83 +41,88 @@ export default async function DashboardPage() {
     }
     trendMonths.push({ month: m, year: y });
   }
+  const trendStart = getMonthRange(trendMonths[0].month, trendMonths[0].year).start;
 
-  // ===== FETCH DATA — all in parallel =====
-  const [
-    monthlyTotal,
-    lastMonthTotal,
-    monthlyBudgets,
-    categorySpend,
-    categories,
-    recentExpenses,
-    expenseCount,
-    trendTotals,
-  ] = await Promise.all([
-    prisma.expense.aggregate({
-      where: { userId, date: { gte: startOfMonth, lte: endOfMonth } },
-      _sum: { amount: true },
-    }),
-    prisma.expense.aggregate({
-      where: { userId, date: { gte: lastRange.start, lte: lastRange.end } },
-      _sum: { amount: true },
-    }),
-    prisma.budget.findMany({
-      where: { userId, month, year },
-      include: { category: true },
-    }),
-    prisma.expense.groupBy({
-      by: ["categoryId"],
-      where: { userId, date: { gte: startOfMonth, lte: endOfMonth } },
-      _sum: { amount: true },
-    }),
-    prisma.category.findMany({
-      where: { OR: [{ isDefault: true }, { userId }] },
-    }),
-    prisma.expense.findMany({
-      where: { userId },
-      include: { category: true },
-      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
-      take: 5,
-    }),
-    prisma.expense.count({
-      where: { userId, date: { gte: startOfMonth, lte: endOfMonth } },
-    }),
-    Promise.all(
-      trendMonths.map((t) => {
-        const range = getMonthRange(t.month, t.year);
-        return prisma.expense.aggregate({
-          where: { userId, date: { gte: range.start, lte: range.end } },
-          _sum: { amount: true },
-        });
-      })
-    ),
-  ]);
+  // ===== FETCH DATA =====
+  // This used to be 13 separate queries. Each one is a round trip to Neon
+  // (~100ms from India), so the page spent over a second just waiting on the
+  // network. Two changes fixed it: the six trend aggregates plus both month
+  // totals collapse into one grouped query, and the category breakdown joins
+  // Category directly instead of fetching the whole table to match IDs in JS.
+  // 13 round trips became 4.
+  const [monthlyRows, categoryRows, monthlyBudgets, recentExpenses] =
+    await Promise.all([
+      // One row per month across the whole 6-month window.
+      // "date" is TIMESTAMP(3) holding UTC midnight, and getMonthRange() builds
+      // its boundaries in UTC too, so date_trunc needs no timezone conversion.
+      prisma.$queryRaw`
+        SELECT date_trunc('month', "date") AS month_start,
+               SUM("amount")::bigint       AS total,
+               COUNT(*)::bigint            AS txn_count
+        FROM "Expense"
+        WHERE "userId" = ${userId}
+          AND "date" >= ${trendStart}
+          AND "date" <= ${endOfMonth}
+        GROUP BY 1
+      `,
+      // This month's spend per category, already sorted and carrying the
+      // category's own display fields
+      prisma.$queryRaw`
+        SELECT c."id", c."name", c."emoji", c."color",
+               SUM(e."amount")::bigint AS total
+        FROM "Expense" e
+        JOIN "Category" c ON c."id" = e."categoryId"
+        WHERE e."userId" = ${userId}
+          AND e."date" >= ${startOfMonth}
+          AND e."date" <= ${endOfMonth}
+        GROUP BY c."id", c."name", c."emoji", c."color"
+        ORDER BY total DESC
+      `,
+      prisma.budget.findMany({
+        where: { userId, month, year },
+        include: { category: true },
+      }),
+      prisma.expense.findMany({
+        where: { userId },
+        include: { category: true },
+        orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+        take: 5,
+      }),
+    ]);
 
   // ===== DERIVE =====
-  const totalSpent = monthlyTotal._sum.amount || 0;
-  const lastSpent = lastMonthTotal._sum.amount || 0;
+  // month_start is the UTC midnight of the 1st — key it back to month/year
+  const byMonth = new Map(
+    monthlyRows.map((row) => {
+      const d = new Date(row.month_start);
+      return [`${d.getUTCFullYear()}-${d.getUTCMonth() + 1}`, row];
+    })
+  );
+  const rowFor = (m, y) => byMonth.get(`${y}-${m}`);
+
+  const totalSpent = num(rowFor(month, year)?.total);
+  const expenseCount = num(rowFor(month, year)?.txn_count);
+  const lastSpent = num(rowFor(lastMonth.month, lastMonth.year)?.total);
+
   const totalBudget = monthlyBudgets.reduce((sum, b) => sum + b.amount, 0);
   const budgetLeft = totalBudget - totalSpent;
   const spendChange =
     lastSpent > 0 ? Math.round(((totalSpent - lastSpent) / lastSpent) * 100) : 0;
 
-  const categoryData = categorySpend
-    .map((cs) => {
-      const cat = categories.find((c) => c.id === cs.categoryId);
-      return {
-        name: cat?.name || "Other",
-        emoji: cat?.emoji || "📦",
-        color: cat?.color || "#6b7280",
-        amount: cs._sum.amount || 0,
-      };
-    })
-    .sort((a, b) => b.amount - a.amount);
+  const categoryData = categoryRows.map((c) => ({
+    name: c.name,
+    emoji: c.emoji,
+    color: c.color,
+    amount: num(c.total),
+  }));
+
+  const spentByCategoryId = new Map(
+    categoryRows.map((c) => [c.id, num(c.total)])
+  );
 
   const budgetStatus = monthlyBudgets
     .map((budget) => {
-      const spent =
-        categorySpend.find((cs) => cs.categoryId === budget.categoryId)?._sum
-          .amount || 0;
+      const spent = spentByCategoryId.get(budget.categoryId) || 0;
       const percent =
         budget.amount > 0 ? Math.round((spent / budget.amount) * 100) : 0;
       return {
@@ -127,9 +136,9 @@ export default async function DashboardPage() {
     })
     .sort((a, b) => b.percent - a.percent);
 
-  const trendData = trendMonths.map((t, i) => ({
+  const trendData = trendMonths.map((t) => ({
     label: `${getShortMonthName(t.month)} ${String(t.year).slice(2)}`,
-    amount: (trendTotals[i]._sum.amount || 0) / 100, // paise → rupees
+    amount: num(rowFor(t.month, t.year)?.total) / 100, // paise → rupees
   }));
 
   return (
@@ -224,7 +233,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Charts */}
-      <DashboardCharts
+      <ChartsSection
         categoryData={categoryData.map((c) => ({
           ...c,
           amount: c.amount / 100, // paise → rupees (for display)
