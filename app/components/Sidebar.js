@@ -8,6 +8,7 @@ const menuItems = [
   { name: "Dashboard", href: "/dashboard", icon: "📊" },
   { name: "Expenses", href: "/dashboard/expenses", icon: "💸" },
   { name: "Budgets", href: "/dashboard/budgets", icon: "🎯" },
+  { name: "Import CSV", href: "/dashboard/import", icon: "📥" },
   { section: "AI Features" },
   { name: "FinBot", href: "/dashboard/finbot", icon: "🤖" },
   { name: "Receipt Scanner", href: "/dashboard/scanner", icon: "📸" },
