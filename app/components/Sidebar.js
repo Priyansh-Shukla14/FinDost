@@ -12,7 +12,7 @@ const menuItems = [
   { name: "FinBot", href: "/dashboard/finbot", icon: "🤖" },
   { name: "Receipt Scanner", href: "/dashboard/scanner", icon: "📸" },
   { section: "Tracking" },
-  { name: "Subscriptions", href: "/dashboard/subscriptions", icon: "🔄", soon: true },
+  { name: "Subscriptions", href: "/dashboard/subscriptions", icon: "🔄" },
   { name: "Dream Goals", href: "/dashboard/goals", icon: "🌟", soon: true },
   { name: "80C Tax Saver", href: "/dashboard/tax", icon: "📋", soon: true },
 ];
